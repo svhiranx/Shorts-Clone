@@ -8,13 +8,14 @@ class VideoProvider extends ChangeNotifier {
   int apiPage = 0;
 
   bool isLoading = false;
-
+  bool isInitialFetch = true;
   final List<Video> _videos = [];
 
   List<Video> get videos => _videos;
 
   Future<void> fetchPaginatedVideos() async {
     if (isLoading == true) return;
+
     log('video fetched');
     isLoading = true;
     notifyListeners();
@@ -24,6 +25,7 @@ class VideoProvider extends ChangeNotifier {
         addvideoToList(Video.fromJson(data));
       }
     });
+    if (isInitialFetch = true) isInitialFetch = false;
     isLoading = false;
     notifyListeners();
   }

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'package:shortsclone/provider.dart';
 import 'package:shortsclone/scroll_screen.dart';
@@ -84,7 +85,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: GridView.builder(
                 controller: _controller,
                 cacheExtent: 15,
-                itemCount: videoProvider.videos.length,
+                itemCount: videoProvider.isInitialFetch
+                    ? 12
+                    : videoProvider.videos.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 10,
@@ -92,16 +95,19 @@ class _MyHomePageState extends State<MyHomePage> {
                     childAspectRatio:
                         MediaQuery.of(context).size.width * 0.0014),
                 itemBuilder: (context, index) {
-                  return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                                  ScrollScreen(initialIndex: index)),
-                        );
-                      },
-                      child: Thumbnail(index: index));
+                  if (videoProvider.isInitialFetch)
+                    return Shimmer.fromColors(
+                      baseColor: Colors.grey.shade900,
+                      highlightColor: Colors.black54,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    );
+                  else
+                    return Thumbnail(index: index);
                 },
               ),
             ),

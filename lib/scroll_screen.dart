@@ -48,7 +48,7 @@ class _ScrollScreenState extends State<ScrollScreen> {
       child: Scaffold(
         backgroundColor: Colors.black,
         body: PreloadPageView.builder(
-            preloadPagesCount: 3,
+            preloadPagesCount: 1,
             controller: _controller,
             scrollDirection: Axis.vertical,
             itemCount: videoProvider.videos.length,
@@ -57,6 +57,8 @@ class _ScrollScreenState extends State<ScrollScreen> {
               pageProvider.currentVideo = value;
             },
             itemBuilder: (context, index) {
+              var ratio = MediaQuery.of(context).size.width /
+                  MediaQuery.of(context).size.height;
               return Column(
                 children: [
                   Expanded(
@@ -68,9 +70,9 @@ class _ScrollScreenState extends State<ScrollScreen> {
                         // ),
 
                         Player(
-                          index: index,
-                          video: videoProvider.videos[index],
-                        ),
+                            index: index,
+                            video: videoProvider.videos[index],
+                            ratio: ratio),
 
                         if (videoProvider.isLoading)
                           Column(
@@ -95,11 +97,15 @@ class _ScrollScreenState extends State<ScrollScreen> {
 }
 
 class Player extends StatefulWidget {
-  const Player({super.key, required this.video, required this.index});
+  const Player(
+      {super.key,
+      required this.video,
+      required this.index,
+      required this.ratio});
 
   final Video video;
   final int index;
-
+  final double ratio;
   @override
   State<Player> createState() => _PlayerState();
 }
@@ -112,10 +118,18 @@ class _PlayerState extends State<Player> {
     // TODO: implement initState
     super.initState();
     videoController = VideoPlayerController.network(widget.video.mediaUrl);
+    // VideoPlayerController.network(widget.video.mediaUrl);
+
     chewieController = ChewieController(
-      aspectRatio: videoController!.value.aspectRatio / 2.1,
-      showControls: true,
-      showOptions: false,
+      showControlsOnInitialize: false,
+      aspectRatio: widget.ratio,
+      showControls: false,
+      showOptions: true,
+      placeholder: Positioned.fill(
+          child: FittedBox(
+        fit: BoxFit.cover,
+        child: Center(child: Image.network(widget.video.thumbnail)),
+      )),
       overlay: UIOverlay(video: widget.video),
       autoInitialize: true,
       autoPlay: false,
@@ -137,7 +151,6 @@ class _PlayerState extends State<Player> {
     var pageProvider = Provider.of<PageProvider>(context);
 
     if (videoController!.value.isInitialized) {
-      log('${pageProvider.currentVideo} ${widget.index}');
       if (pageProvider.currentVideo == widget.index) {
         videoController!.play();
       } else {
@@ -147,8 +160,11 @@ class _PlayerState extends State<Player> {
     }
 
     return Positioned.fill(
-      child: Chewie(
-        controller: chewieController!,
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: Chewie(
+          controller: chewieController!,
+        ),
       ),
     );
   }
@@ -217,9 +233,9 @@ class UIOverlay extends StatelessWidget {
             Text(
               video.title,
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-              ),
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
