@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shortsclone/provider.dart';
@@ -10,6 +12,7 @@ class Thumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var video = Provider.of<VideoProvider>(context).videos[index];
+
     return GestureDetector(
         key: ValueKey(video.postId),
         onTap: () {
@@ -19,6 +22,9 @@ class Thumbnail extends StatelessWidget {
                 builder: (BuildContext context) =>
                     ScrollScreen(initialIndex: index)),
           );
+          log(index.toString() + 'thumbnail index');
+          Provider.of<PageProvider>(context, listen: false).currentVideo =
+              index;
         },
         child: Container(
           decoration: BoxDecoration(

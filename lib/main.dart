@@ -95,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     childAspectRatio:
                         MediaQuery.of(context).size.width * 0.0014),
                 itemBuilder: (context, index) {
-                  if (videoProvider.isInitialFetch)
+                  if (videoProvider.isInitialFetch) {
                     return Shimmer.fromColors(
                       baseColor: Colors.grey.shade900,
                       highlightColor: Colors.black54,
@@ -106,8 +106,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     );
-                  else
+                  } else {
                     return Thumbnail(index: index);
+                  }
                 },
               ),
             ),

@@ -43,55 +43,48 @@ class _ScrollScreenState extends State<ScrollScreen> {
   @override
   Widget build(BuildContext context) {
     var videoProvider = Provider.of<VideoProvider>(context);
-    var pageProvider = Provider.of<PageProvider>(context);
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: PreloadPageView.builder(
-            preloadPagesCount: 1,
-            controller: _controller,
-            scrollDirection: Axis.vertical,
-            itemCount: videoProvider.videos.length,
-            onPageChanged: (value) {
-              log(value.toString());
-              pageProvider.currentVideo = value;
-            },
-            itemBuilder: (context, index) {
-              var ratio = MediaQuery.of(context).size.width /
-                  MediaQuery.of(context).size.height;
-              return Column(
-                children: [
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        // Positioned.fill(
-                        //   child: Image.network(
-                        //       fit: BoxFit.fitHeight, video.thumbnail),
-                        // ),
-
-                        Player(
-                            index: index,
-                            video: videoProvider.videos[index],
-                            ratio: ratio),
-
-                        if (videoProvider.isLoading)
-                          Column(
-                            children: [
-                              const Spacer(),
-                              SizedBox(
-                                  width: MediaQuery.of(context).size.width,
-                                  child: const LinearProgressIndicator(
-                                    color: Colors.black,
-                                  ))
-                            ],
-                          )
-                      ],
-                    ),
+    var pageProvider = Provider.of<PageProvider>(context, listen: false);
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: PreloadPageView.builder(
+          preloadPagesCount: 0,
+          controller: _controller,
+          scrollDirection: Axis.vertical,
+          itemCount: videoProvider.videos.length,
+          onPageChanged: (value) {
+            pageProvider.currentVideo = value;
+            log('${value}actual value');
+          },
+          itemBuilder: (context, index) {
+            var ratio = MediaQuery.of(context).size.width /
+                MediaQuery.of(context).size.height;
+            return Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Player(
+                          key: ValueKey(videoProvider.videos[index]),
+                          index: index,
+                          video: videoProvider.videos[index],
+                          ratio: ratio),
+                      if (videoProvider.isLoading)
+                        Column(
+                          children: [
+                            const Spacer(),
+                            SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                child: const LinearProgressIndicator(
+                                  color: Colors.black,
+                                ))
+                          ],
+                        )
+                    ],
                   ),
-                ],
-              );
-            }),
-      ),
+                ),
+              ],
+            );
+          }),
     );
   }
 }
@@ -113,12 +106,14 @@ class Player extends StatefulWidget {
 class _PlayerState extends State<Player> {
   VideoPlayerController? videoController;
   ChewieController? chewieController;
+  bool isInit = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    videoController = VideoPlayerController.network(widget.video.mediaUrl);
-    // VideoPlayerController.network(widget.video.mediaUrl);
+
+    // videoController = VideoPlayerController.asset('assets/video.mp4');
+    VideoPlayerController.network(widget.video.mediaUrl);
 
     chewieController = ChewieController(
       showControlsOnInitialize: false,
@@ -136,6 +131,15 @@ class _PlayerState extends State<Player> {
       looping: true,
       videoPlayerController: videoController!,
     );
+    videoController!.addListener(() {
+      if (isInit)
+        return;
+      else {
+        setState(() {
+          isInit = true;
+        });
+      }
+    });
   }
 
   @override
@@ -148,22 +152,24 @@ class _PlayerState extends State<Player> {
 
   @override
   Widget build(BuildContext context) {
-    var pageProvider = Provider.of<PageProvider>(context);
-
+    var pageProvider = Provider.of<PageProvider>(context, listen: true);
+    log('${pageProvider.currentVideo}  :${widget.index} ');
     if (videoController!.value.isInitialized) {
       if (pageProvider.currentVideo == widget.index) {
         videoController!.play();
       } else {
         videoController!.pause();
       }
-      videoController!.setLooping(true);
     }
 
     return Positioned.fill(
-      child: FittedBox(
-        fit: BoxFit.cover,
-        child: Chewie(
-          controller: chewieController!,
+      child: GestureDetector(
+        onTap: () => log(widget.index.toString()),
+        child: FittedBox(
+          fit: BoxFit.cover,
+          child: Chewie(
+            controller: chewieController!,
+          ),
         ),
       ),
     );
@@ -181,11 +187,11 @@ class UIOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 50,
+      bottom: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Padding(
+          Container(
             padding: const EdgeInsets.only(right: 10),
             child: Column(
               children: [
@@ -221,58 +227,71 @@ class UIOverlay extends StatelessWidget {
     );
   }
 
-  Column userAndDescription(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const SizedBox(
-              width: 10,
-            ),
-            Text(
-              video.title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold),
-            ),
+  Container userAndDescription(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: <Color>[
+            Colors.black,
+            Colors.transparent,
           ],
+          tileMode: TileMode.mirror,
         ),
-        Row(
-          children: [
-            const SizedBox(
-              width: 10,
-            ),
-            CircleAvatar(
-              backgroundImage: NetworkImage(video.creator.pic!),
-            ),
-            const SizedBox(
-              width: 10,
-            ),
-            Text(
-              video.creator.handle,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
-            )
-          ],
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        Container(
-            padding: const EdgeInsets.only(left: 10),
-            width: MediaQuery.of(context).size.width,
-            child: ReadMoreText(
-              style: TextStyle(
-                color: Colors.grey.shade300,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const SizedBox(
+                width: 10,
               ),
-              colorClickableText: Colors.blue,
-              video.description,
-              trimMode: TrimMode.Line,
-              trimLines: 2,
-            )),
-      ],
+              Text(
+                video.title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const SizedBox(
+                width: 10,
+              ),
+              CircleAvatar(
+                backgroundImage: NetworkImage(video.creator.pic!),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              Text(
+                video.creator.handle,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
+              )
+            ],
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Container(
+              padding: const EdgeInsets.only(left: 10, bottom: 40),
+              width: MediaQuery.of(context).size.width,
+              child: ReadMoreText(
+                style: TextStyle(
+                  color: Colors.grey.shade300,
+                ),
+                colorClickableText: Colors.blue,
+                video.description,
+                trimMode: TrimMode.Line,
+                trimLines: 2,
+              )),
+        ],
+      ),
     );
   }
 }
