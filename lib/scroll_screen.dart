@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:preload_page_view/preload_page_view.dart';
 import 'package:provider/provider.dart';
 import 'package:readmore/readmore.dart';
@@ -58,29 +59,47 @@ class _ScrollScreenState extends State<ScrollScreen> {
           itemBuilder: (context, index) {
             var ratio = MediaQuery.of(context).size.width /
                 MediaQuery.of(context).size.height;
-            return Column(
-              key: ValueKey(videoProvider.videos[index]),
-              children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Player(index: index, ratio: ratio),
-                      if (videoProvider.isLoading)
-                        Column(
-                          children: [
-                            const Spacer(),
-                            SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: const LinearProgressIndicator(
-                                  color: Colors.black,
-                                ))
-                          ],
-                        )
-                    ],
-                  ),
-                ),
-              ],
-            );
+            return StreamBuilder(
+                stream: InternetConnectionChecker().onStatusChange,
+                builder: (context, snapshot) {
+                  switch (snapshot.data) {
+                    case InternetConnectionStatus.disconnected:
+                      return Expanded(
+                          key: ValueKey(videoProvider.videos[index]),
+                          child: Center(
+                            child: Text(
+                              ' No internet connection ❌',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ));
+                    case null:
+                    case InternetConnectionStatus.connected:
+                      return Column(
+                        key: ValueKey(videoProvider.videos[index]),
+                        children: [
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                Player(index: index, ratio: ratio),
+                                if (videoProvider.isLoading)
+                                  Column(
+                                    children: [
+                                      const Spacer(),
+                                      SizedBox(
+                                          width:
+                                              MediaQuery.of(context).size.width,
+                                          child: const LinearProgressIndicator(
+                                            color: Colors.black,
+                                          ))
+                                    ],
+                                  )
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                  }
+                });
           }),
     );
   }
@@ -121,6 +140,15 @@ class _PlayerState extends State<Player> {
         fit: BoxFit.cover,
         child: Center(child: Image.network(video.thumbnail)),
       )),
+      errorBuilder: (context, errorMessage) {
+        return Positioned.fill(
+            child: Center(
+          child: Text(
+            errorMessage,
+            style: TextStyle(color: Colors.white),
+          ),
+        ));
+      },
       overlay: UIOverlay(video: video),
       autoInitialize: true,
       autoPlay: false,

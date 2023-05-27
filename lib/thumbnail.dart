@@ -11,7 +11,8 @@ class Thumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var video = Provider.of<VideoProvider>(context).videos[index];
+    var video =
+        Provider.of<VideoProvider>(context, listen: false).videos[index];
 
     return GestureDetector(
         key: ValueKey(video.postId),

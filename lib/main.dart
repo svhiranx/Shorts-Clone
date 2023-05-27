@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -80,39 +81,45 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Column(
         children: [
-          FutureBuilder(
-            builder: (context, snapshot) => Expanded(
-              child: GridView.builder(
-                controller: _controller,
-                cacheExtent: 15,
-                itemCount: videoProvider.isInitialFetch
-                    ? 12
-                    : videoProvider.videos.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio:
-                        MediaQuery.of(context).size.width * 0.0014),
-                itemBuilder: (context, index) {
-                  if (videoProvider.isInitialFetch) {
-                    return Shimmer.fromColors(
-                      baseColor: Color.fromARGB(255, 41, 41, 41),
-                      highlightColor: Colors.black54,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Thumbnail(index: index);
-                  }
-                },
-              ),
-            ),
-          ),
+          videoProvider.isInternetLost
+              ? const Expanded(
+                  child: Center(
+                  child: Text(
+                    ' No internet connection ❌',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ))
+              : Expanded(
+                  child: GridView.builder(
+                    controller: _controller,
+                    cacheExtent: 15,
+                    itemCount: videoProvider.isInitialFetch
+                        ? 12
+                        : videoProvider.videos.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        childAspectRatio:
+                            MediaQuery.of(context).size.width * 0.0014),
+                    itemBuilder: (context, index) {
+                      if (videoProvider.isInitialFetch) {
+                        return Shimmer.fromColors(
+                          baseColor: const Color.fromARGB(255, 41, 41, 41),
+                          highlightColor: Colors.black54,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        );
+                      } else {
+                        return Thumbnail(index: index);
+                      }
+                    },
+                  ),
+                ),
           if (videoProvider.isLoading && !videoProvider.isInitialFetch)
             SizedBox(
                 width: MediaQuery.of(context).size.width,
