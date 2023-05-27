@@ -97,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 itemBuilder: (context, index) {
                   if (videoProvider.isInitialFetch) {
                     return Shimmer.fromColors(
-                      baseColor: Colors.grey.shade900,
+                      baseColor: Color.fromARGB(255, 41, 41, 41),
                       highlightColor: Colors.black54,
                       child: Container(
                         decoration: BoxDecoration(
@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
-          if (videoProvider.isLoading)
+          if (videoProvider.isLoading && !videoProvider.isInitialFetch)
             SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: const LinearProgressIndicator(

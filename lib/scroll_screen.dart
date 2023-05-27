@@ -47,7 +47,7 @@ class _ScrollScreenState extends State<ScrollScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: PreloadPageView.builder(
-          preloadPagesCount: 0,
+          preloadPagesCount: 3,
           controller: _controller,
           scrollDirection: Axis.vertical,
           itemCount: videoProvider.videos.length,
@@ -59,15 +59,12 @@ class _ScrollScreenState extends State<ScrollScreen> {
             var ratio = MediaQuery.of(context).size.width /
                 MediaQuery.of(context).size.height;
             return Column(
+              key: ValueKey(videoProvider.videos[index]),
               children: [
                 Expanded(
                   child: Stack(
                     children: [
-                      Player(
-                          key: ValueKey(videoProvider.videos[index]),
-                          index: index,
-                          video: videoProvider.videos[index],
-                          ratio: ratio),
+                      Player(index: index, ratio: ratio),
                       if (videoProvider.isLoading)
                         Column(
                           children: [
@@ -90,13 +87,8 @@ class _ScrollScreenState extends State<ScrollScreen> {
 }
 
 class Player extends StatefulWidget {
-  const Player(
-      {super.key,
-      required this.video,
-      required this.index,
-      required this.ratio});
+  const Player({super.key, required this.index, required this.ratio});
 
-  final Video video;
   final int index;
   final double ratio;
   @override
@@ -111,9 +103,13 @@ class _PlayerState extends State<Player> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    var video =
+        Provider.of<VideoProvider>(context, listen: false).videos[widget.index];
+    videoController = VideoPlayerController.network(video.mediaUrl);
+    // .network(video.mediaUrl);
+    //
 
-    // videoController = VideoPlayerController.asset('assets/video.mp4');
-    VideoPlayerController.network(widget.video.mediaUrl);
+    // VideoPlayerController.network(widget.video.mediaUrl);
 
     chewieController = ChewieController(
       showControlsOnInitialize: false,
@@ -123,18 +119,18 @@ class _PlayerState extends State<Player> {
       placeholder: Positioned.fill(
           child: FittedBox(
         fit: BoxFit.cover,
-        child: Center(child: Image.network(widget.video.thumbnail)),
+        child: Center(child: Image.network(video.thumbnail)),
       )),
-      overlay: UIOverlay(video: widget.video),
+      overlay: UIOverlay(video: video),
       autoInitialize: true,
       autoPlay: false,
       looping: true,
       videoPlayerController: videoController!,
     );
     videoController!.addListener(() {
-      if (isInit)
+      if (isInit) {
         return;
-      else {
+      } else {
         setState(() {
           isInit = true;
         });
@@ -165,11 +161,8 @@ class _PlayerState extends State<Player> {
     return Positioned.fill(
       child: GestureDetector(
         onTap: () => log(widget.index.toString()),
-        child: FittedBox(
-          fit: BoxFit.cover,
-          child: Chewie(
-            controller: chewieController!,
-          ),
+        child: Chewie(
+          controller: chewieController!,
         ),
       ),
     );
