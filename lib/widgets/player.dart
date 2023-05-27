@@ -25,9 +25,8 @@ class _PlayerState extends State<Player> {
     super.initState();
     var video =
         Provider.of<VideoProvider>(context, listen: false).videos[widget.index];
-    videoController = VideoPlayerController
-        // .network(video.mediaUrl);
-        .asset('assets/video.mp4');
+    videoController = VideoPlayerController.network(video.mediaUrl);
+    // .asset('assets/video.mp4');
     chewieController = ChewieController(
       showControlsOnInitialize: false,
       aspectRatio: widget.ratio,
