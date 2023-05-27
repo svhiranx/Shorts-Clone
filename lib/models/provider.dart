@@ -3,37 +3,34 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:shortsclone/api_service.dart';
-import 'package:shortsclone/video.dart';
+import 'package:shortsclone/models/video.dart';
 
 class VideoProvider extends ChangeNotifier {
   int apiPage = 0;
 
   bool isLoading = false;
-  bool _isInitialFetch = true;
+  bool isInitialFetch = true;
   bool _isInternetLost = false;
   final List<Video> _videos = [];
 
   VideoProvider() {
-    InternetConnectionChecker().onStatusChange.listen((event) {
+    InternetConnectionChecker().onStatusChange.listen((event) async {
       if (event == InternetConnectionStatus.disconnected) {
         isInternetLost = true;
       }
       if (event == InternetConnectionStatus.connected) {
-        if (videos == []) {
+        if (_videos.isEmpty) {
           isInitialFetch = true;
-          fetchPaginatedVideos();
+          isInternetLost = false;
+          await fetchPaginatedVideos();
+        } else {
+          isInternetLost = false;
         }
-        isLoading = false;
-        isInitialFetch = false;
-        isInternetLost = false;
       }
     });
   }
 
   List<Video> get videos => _videos;
-  set isInitialFetch(bool boolean) {
-    _isInitialFetch = boolean;
-  }
 
   set isInternetLost(bool boolean) {
     _isInternetLost = boolean;
@@ -41,10 +38,9 @@ class VideoProvider extends ChangeNotifier {
   }
 
   bool get isInternetLost => _isInternetLost;
-  bool get isInitialFetch => _isInitialFetch;
 
   Future<void> fetchPaginatedVideos() async {
-    if (isLoading == true) return;
+    if (isLoading || isInternetLost) return;
 
     log('video fetched');
     isLoading = true;

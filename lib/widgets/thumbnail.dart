@@ -1,9 +1,7 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shortsclone/provider.dart';
-import 'package:shortsclone/scroll_screen.dart';
+import 'package:shortsclone/models/provider.dart';
+import 'package:shortsclone/screens/scroll_screen.dart';
 
 class Thumbnail extends StatelessWidget {
   const Thumbnail({super.key, required this.index});
@@ -23,13 +21,12 @@ class Thumbnail extends StatelessWidget {
                 builder: (BuildContext context) =>
                     ScrollScreen(initialIndex: index)),
           );
-          log(index.toString() + 'thumbnail index');
           Provider.of<PageProvider>(context, listen: false).currentVideo =
               index;
         },
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
             image: DecorationImage(
               fit: BoxFit.fill,
               image: NetworkImage(video.thumbnail),

@@ -1,4 +1,4 @@
-import 'package:shortsclone/creator.dart';
+import 'package:shortsclone/models/creator.dart';
 
 class Video {
   String postId;
