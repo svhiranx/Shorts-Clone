@@ -30,11 +30,6 @@ class _ScrollScreenState extends State<ScrollScreen> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     var videoProvider = Provider.of<VideoProvider>(context);
     var pageProvider = Provider.of<PageProvider>(context, listen: false);
