@@ -50,7 +50,7 @@ class VideoProvider extends ChangeNotifier {
     }
     await VideosApi().getVideos(apiPage).then((response) {
       apiPage = apiPage + 1;
-      for (var data in response.data["data"]["postss"]) {
+      for (var data in response.data["data"]["posts"]) {
         addvideoToList(Video.fromJson(data));
       }
     });
